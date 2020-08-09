@@ -38,11 +38,13 @@ const (
 	// MagicIndex 4 bytes at the head of an index file.
 	MagicIndex = 0xBAAAD700
 	// HeaderLen represents number of bytes reserved of index for header.
+	// magic占4，version占1
 	HeaderLen = 5
 
 	// FormatV1 represents 1 version of index.
 	FormatV1 = 1
 	// FormatV2 represents 2 version of index.
+	// 为什么需要Version 2？
 	FormatV2 = 2
 
 	labelNameSeperator = "\xff"
@@ -64,6 +66,7 @@ func (s indexWriterSeriesSlice) Less(i, j int) bool {
 	return labels.Compare(s[i].labels, s[j].labels) < 0
 }
 
+//把write的过程分成不同的stage
 type indexWriterStage uint8
 
 const (
@@ -75,6 +78,7 @@ const (
 	idxStageDone
 )
 
+//根据不同的stage返回不同的String
 func (s indexWriterStage) String() string {
 	switch s {
 	case idxStageNone:
@@ -98,6 +102,7 @@ func (s indexWriterStage) String() string {
 // before.
 var castagnoliTable *crc32.Table
 
+// 把castagnoliTable变成新的crc32包中的table
 func init() {
 	castagnoliTable = crc32.MakeTable(crc32.Castagnoli)
 }
@@ -111,10 +116,12 @@ func newCRC32() hash.Hash32 {
 // Writer implements the IndexWriter interface for the standard
 // serialization format.
 type Writer struct {
+	// 这三个不知道是什么
 	f    *os.File
 	fbuf *bufio.Writer
 	pos  uint64
 
+	//以下分别是记录Index中记录各部分开始的位置，以及正在进行写入的是哪一部分
 	toc   TOC
 	stage indexWriterStage
 
@@ -123,6 +130,7 @@ type Writer struct {
 	buf2    encoding.Encbuf
 	uint32s []uint32
 
+	// 定义各部分的开端
 	symbols       map[string]uint32     // symbol offsets
 	seriesOffsets map[uint64]uint64     // offsets of series
 	labelIndexes  []labelIndexHashEntry // label index offsets
@@ -137,6 +145,7 @@ type Writer struct {
 }
 
 // TOC represents index Table Of Content that states where each section of index starts.
+// 记录每个Index的部分开始的位置
 type TOC struct {
 	Symbols           uint64
 	Series            uint64
