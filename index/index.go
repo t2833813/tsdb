@@ -148,6 +148,7 @@ type TOC struct {
 
 // NewTOCFromByteSlice return parsed TOC from given index byte slice.
 func NewTOCFromByteSlice(bs ByteSlice) (*TOC, error) {
+	//比较byteslice和TOC长度的大小
 	if bs.Len() < indexTOCLen {
 		return nil, encoding.ErrInvalidSize
 	}
